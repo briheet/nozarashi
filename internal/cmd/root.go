@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/briheet/nozarashi/internal/cmd/system"
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +18,7 @@ func Execute(ctx context.Context) int {
 		Short: "Nozarashi is a cli based application for orchestrating apple container.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			printAscii()
-			return nil
+			return cmd.Help()
 		},
 	}
 
@@ -29,9 +30,7 @@ func Execute(ctx context.Context) int {
 	//	nozarashi up info
 	//
 	// `up` is a child of the root command, and `info` is a child of `up`.
-	rootCmd.AddCommand(StartCmd(ctx))
-	rootCmd.AddCommand(StatusCmd(ctx))
-	rootCmd.AddCommand(StopCmd(ctx))
+	rootCmd.AddCommand(system.SystemCmd(ctx))
 
 	if err := rootCmd.Execute(); err != nil {
 		log.Printf("Error: %v", err)
