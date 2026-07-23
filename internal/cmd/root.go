@@ -33,7 +33,7 @@ func Execute(ctx context.Context) int {
 
 	// This is the base system command wrapping over
 	// apple container's cli for managing it
-	rootCmd.AddCommand(system.SystemCmd(ctx))
+	rootCmd.AddCommand(system.SystemCmd())
 
 	// This is the up command for starting the containers
 	rootCmd.AddCommand(UpCmd(ctx))

@@ -1,12 +1,10 @@
 package system
 
 import (
-	"context"
-
 	"github.com/spf13/cobra"
 )
 
-func SystemCmd(ctx context.Context) *cobra.Command {
+func SystemCmd() *cobra.Command {
 	systemCmd := &cobra.Command{
 		Use:   "system",
 		Short: "Manage the container system.",
@@ -15,9 +13,9 @@ func SystemCmd(ctx context.Context) *cobra.Command {
 		},
 	}
 
-	systemCmd.AddCommand(StartCmd(ctx))
-	systemCmd.AddCommand(StatusCmd(ctx))
-	systemCmd.AddCommand(StopCmd(ctx))
+	systemCmd.AddCommand(StartCmd())
+	systemCmd.AddCommand(StatusCmd())
+	systemCmd.AddCommand(StopCmd())
 
 	return systemCmd
 }
