@@ -1,5 +1,6 @@
 package specs
 
+// Enum type for Inputs
 type InputType string
 
 const (
@@ -67,10 +68,10 @@ type InputSpecs struct {
 type ServiceSpecs struct {
 	// Type of service.
 	// image, path, input
-	Type string `mapstructure:"type"`
+	Type string `mapstructure:"type" validate:"required,oneof=oci path input"`
 
 	// Reference to type
-	Reference string `mapstructure:"reference"`
+	Reference string `mapstructure:"reference" validate:"required"`
 
 	// Attribute if so
 	Attribute string `mapstructure:"attribute"`
@@ -97,10 +98,10 @@ type ServiceSpecs struct {
 	DependsOn []string `mapstructure:"depends_on"`
 
 	// Number of replicas
-	Replicas int `mapstructure:"replicas"`
+	Replicas int `mapstructure:"replicas" validate:"omitempty,min=1,max=100"`
 
 	// Policy
-	Policy string `mapstructure:"policy"`
+	Policy string `mapstructure:"policy" validate:"omitempty,oneof=no always on-failure unless-stopped"`
 }
 
 // VolumeSpecs defines a named persistent volume.

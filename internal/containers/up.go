@@ -1,6 +1,10 @@
 package containers
 
-import "context"
+import (
+	"context"
+
+	"github.com/briheet/nozarashi/internal/config"
+)
 
 // Options when using the up command
 type UpOptions struct {
@@ -19,6 +23,36 @@ func UpContainers(ctx context.Context, opts UpOptions) error {
 	}
 
 	// Parse the config file
+	specs, err := config.ParseTOMLConfig(ctx, opts.FilePath)
+	if err != nil {
+		return err
+	}
+
+	// Validate dependency graph and find any inconsistencies
+	if err := validateDependencyGraph(ctx, specs, opts); err != nil {
+		return err
+	}
+
+	// Build dependency graph
+	graph, err := buildDependencyGraph(ctx, specs)
+	if err != nil {
+		return err
+	}
+
+	// Build Service Images
+	if err := buildServiceImages(ctx, graph); err != nil {
+		return err
+	}
+
+	// Create Resources
+	if err := createResources(ctx, graph); err != nil {
+		return err
+	}
+
+	// Create Service Containers
+	if err := createImages(ctx, graph); err != nil {
+		return err
+	}
 
 	return nil
 }
