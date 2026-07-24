@@ -36,7 +36,10 @@ func Execute(ctx context.Context) int {
 	rootCmd.AddCommand(system.SystemCmd())
 
 	// This is the up command for starting the containers
-	rootCmd.AddCommand(UpCmd(ctx))
+	rootCmd.AddCommand(UpCmd())
+
+	// This is the down command for stopping the containers
+	rootCmd.AddCommand(DownCmd())
 
 	// Execute and return if any error
 	if err := rootCmd.Execute(); err != nil {

@@ -1,0 +1,31 @@
+[project]
+name = "nozarashi-integration"
+version = "0.1.0"
+description = "Redis integration test"
+profile = "test"
+
+[inputs.nixpkgs]
+type = "flake"
+source = "github:NixOS/nixpkgs/nixos-unstable"
+
+[services.redis]
+type = "oci"
+reference = "docker.io/library/redis:7-alpine"
+command = ["redis-server"]
+networks = ["default"]
+replicas = 1
+policy = "unless-stopped"
+
+[[services.redis.volumes]]
+name = "redis-data"
+path = "/data"
+
+[[services.redis.ports]]
+host = 6379
+container = 6379
+
+[volumes.redis-data]
+driver = "local"
+
+[networks.default]
+driver = "default"

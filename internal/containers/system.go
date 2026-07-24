@@ -11,8 +11,8 @@ func StartSystemContainers(ctx context.Context) error {
 	// Build base command
 	systemStartCmd := exec.CommandContext(
 		ctx,
-		ContainersCliName,
-		ContainersSystemStartArgs...,
+		ContainerCliName,
+		ContainerSystemStartArgs...,
 	)
 
 	// Point the Command Error and Output to Standard Error and Output
@@ -28,8 +28,8 @@ func StatusSystemContainers(ctx context.Context) error {
 	// Build base command
 	systemStatusCmd := exec.CommandContext(
 		ctx,
-		ContainersCliName,
-		ContainersSystemStatusArgs...,
+		ContainerCliName,
+		ContainerSystemStatusArgs...,
 	)
 
 	// Point the Command Error and Output to Standard Error and Output
@@ -45,8 +45,8 @@ func StopSystemContainers(ctx context.Context) error {
 	// Build base command
 	systemStopCmd := exec.CommandContext(
 		ctx,
-		ContainersCliName,
-		ContainersSystemStopArgs...,
+		ContainerCliName,
+		ContainerSystemStopArgs...,
 	)
 
 	// Point the Command Error and Output to Standard Error and Output

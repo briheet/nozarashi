@@ -6,8 +6,8 @@ import (
 	"github.com/briheet/nozarashi/internal/config"
 )
 
-// This wraps over apple's container cli and helps us creating and managing containers
-func UpContainers(ctx context.Context, opts ContainerOptions) error {
+// This wraps over apple's container cli and helps us stopping running containers
+func DownContainers(ctx context.Context, opts ContainerOptions) error {
 	// First check this containers system is running
 	if err := StatusSystemContainers(ctx); err != nil {
 		return err
@@ -30,18 +30,8 @@ func UpContainers(ctx context.Context, opts ContainerOptions) error {
 		return err
 	}
 
-	// Build Service Images
-	if err := buildServiceImages(ctx, graph); err != nil {
-		return err
-	}
-
-	// Create Resources
-	if err := createResources(ctx, graph); err != nil {
-		return err
-	}
-
-	// Create Service Containers
-	if err := createContainers(ctx, graph); err != nil {
+	// Stop containers
+	if err := stopContainers(ctx, graph); err != nil {
 		return err
 	}
 

@@ -4,9 +4,18 @@ package specs
 type InputType string
 
 const (
-	InputTypeGithub InputType = "git"
-	InputTypeNix    InputType = "flake"
-	InputTypeLocal  InputType = "path"
+	InputTypeGit   InputType = "git"
+	InputTypeNix   InputType = "flake"
+	InputTypeLocal InputType = "path"
+)
+
+// Enum type for Services
+type ServiceType string
+
+const (
+	ServiceTypeOCI   ServiceType = "oci"
+	ServiceTypeInput ServiceType = "input"
+	ServiceTypePath  ServiceType = "path"
 )
 
 // This will contain standard specs.
@@ -53,7 +62,7 @@ type ProjectSpecs struct {
 
 // This defines input specs types
 type InputSpecs struct {
-	// Type of input whether it is flake, git or local nix module
+	// Type of input whether it is a flake, Git repository or local Nix module
 	Type InputType `mapstructure:"type" validate:"required"`
 
 	// Source of the input type. Can be Url or a relative path
@@ -67,8 +76,8 @@ type InputSpecs struct {
 // This defines the service specs types
 type ServiceSpecs struct {
 	// Type of service.
-	// image, path, input
-	Type string `mapstructure:"type" validate:"required,oneof=oci path input"`
+	// oci, path, input
+	Type ServiceType `mapstructure:"type" validate:"required,oneof=oci path input"`
 
 	// Reference to type
 	Reference string `mapstructure:"reference" validate:"required"`

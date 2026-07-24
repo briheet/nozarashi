@@ -1,7 +1,6 @@
 package containers
 
 import (
-	"context"
 	"fmt"
 	"path/filepath"
 	"slices"
@@ -19,14 +18,14 @@ import (
 // Detect dependency cycles
 // Validate referenced volumes, network, config, secret
 // Verifies dependencies via lockfile (lockfile is relative to config file)
-func validateDependencyGraph(ctx context.Context, specs *specs.Specs, opts UpOptions) error {
+func validateDependencyGraph(projectSpecs *specs.Specs) error {
 	// Validate all services have correct referencces to other services and resources
-	if err := validateServiceReferences(specs); err != nil {
+	if err := validateServiceReferences(projectSpecs); err != nil {
 		return err
 	}
 
 	// Validate directed cyclic dependencies via DependsOn
-	if err := validateDependencyCycles(specs.Services); err != nil {
+	if err := validateDependencyCycles(projectSpecs.Services); err != nil {
 		return err
 	}
 
