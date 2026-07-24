@@ -25,8 +25,13 @@ func DownContainers(ctx context.Context, opts ContainerOptions) error {
 	}
 
 	// Build dependency graph
-	graph, err := buildDependencyGraph(ctx, specs)
+	graph, err := buildDependencyGraph(specs)
 	if err != nil {
+		return err
+	}
+
+	// Select services passed through the command arguments.
+	if err := selectServiceNodes(graph, opts.Args); err != nil {
 		return err
 	}
 

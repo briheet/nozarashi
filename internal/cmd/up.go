@@ -7,14 +7,15 @@ import (
 
 // This command usually deals with creating and starting containers
 func UpCmd() *cobra.Command {
-	// Up container options
+	// Container options
 	opts := containers.ContainerOptions{
+		// Default config filepath
 		FilePath: "nozarashi.toml",
 	}
 
 	// This command and its subcommands (if i add any) would orchestrate containers handling
 	upCmd := &cobra.Command{
-		Use:   "up",
+		Use:   "up [services...]",
 		Short: "Create and start containers",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Add args
@@ -23,12 +24,9 @@ func UpCmd() *cobra.Command {
 		},
 	}
 
-	// Add required flags from here. This will be picked by UpOptions
+	// Add required flags from here. This will be picked by ContainerOptions
 	// Flag for passing filepath
 	upCmd.Flags().StringVarP(&opts.FilePath, "filepath", "f", opts.FilePath, "Path to the configuration file.")
-
-	// Flag for rebuilding images, else skip
-	upCmd.Flags().BoolVarP(&opts.Build, "build", "b", opts.Build, "Pass for rebuilding of images.")
 
 	return upCmd
 }

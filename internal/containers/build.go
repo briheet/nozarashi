@@ -9,15 +9,67 @@ import (
 	"path/filepath"
 	"slices"
 
+	"github.com/briheet/nozarashi/internal/config"
 	"github.com/briheet/nozarashi/internal/nix"
 	"github.com/briheet/nozarashi/internal/specs"
 )
+
+// This wraps over apple's container cli and helps us build images, deleting containers if any
+func BuildContainers(ctx context.Context, opts ContainerOptions) error {
+	// First check this containers system is running
+	if err := StatusSystemContainers(ctx); err != nil {
+		return err
+	}
+
+	// Parse the config file
+	specs, err := config.ParseTOMLConfig(ctx, opts.FilePath)
+	if err != nil {
+		return err
+	}
+
+	// Validate dependency graph and find any inconsistencies
+	if err := validateDependencyGraph(specs); err != nil {
+		return err
+	}
+	// Build dependency graph
+	graph, err := buildDependencyGraph(specs)
+	if err != nil {
+		return err
+	}
+
+	// Select services passed through the command arguments.
+	if err := selectServiceNodes(graph, opts.Args); err != nil {
+		return err
+	}
+
+	// As we have graph, inspect, stop and remove containers if running
+	if err := stopContainers(ctx, graph); err != nil {
+		return err
+	}
+
+	// Delete stopped project containers so rebuilt images can be used.
+	if err := removeContainers(ctx, graph); err != nil {
+		return err
+	}
+
+	// Remove project-scoped images while preserving shared registry images.
+	if err := removeImages(ctx, graph); err != nil {
+		return err
+	}
+
+	// Build local images and pull registry images.
+	if err := buildServiceImages(ctx, graph); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 // Build dependency graph
 // As all resource are validated, it builds inline order dependencyGraph to execute
 // We do a topological sort here. Check this for more: https://cp-algorithms.com/graph/topological-sort.html
 // Graphs are already validated and directed (dependsOn), hence no contradiction
-func buildDependencyGraph(ctx context.Context, projectSpecs *specs.Specs) (*specs.Graph, error) {
+func buildDependencyGraph(projectSpecs *specs.Specs) (*specs.Graph, error) {
 	// Base graph definition
 	var graph specs.Graph
 

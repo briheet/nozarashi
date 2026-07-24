@@ -14,9 +14,10 @@ func DownCmd() *cobra.Command {
 
 	// This command stops containers from the configured project.
 	downCmd := &cobra.Command{
-		Use:   "down",
+		Use:   "down [services...]",
 		Short: "Stop running containers",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			opts.Args = args
 			return containers.DownContainers(cmd.Context(), opts)
 		},
 	}

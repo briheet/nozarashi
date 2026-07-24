@@ -69,3 +69,21 @@ func TestContainerStopArgs(t *testing.T) {
 		t.Fatalf("unexpected container stop arguments:\ngot:  %q\nwant: %q", got, want)
 	}
 }
+
+func TestContainerDeleteArgs(t *testing.T) {
+	got := ContainerDeleteArgs("example-api-1")
+	want := []string{"delete", "example-api-1"}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("unexpected container delete arguments:\ngot:  %q\nwant: %q", got, want)
+	}
+}
+
+func TestContainerImageDeleteArgs(t *testing.T) {
+	got := ContainerImageDeleteArgs("example-api")
+	want := []string{"image", "delete", "example-api"}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("unexpected image delete arguments:\ngot:  %q\nwant: %q", got, want)
+	}
+}

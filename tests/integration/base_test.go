@@ -40,6 +40,11 @@ func TestRedisServiceLifecycle(t *testing.T) {
 
 	options := containers.ContainerOptions{FilePath: configDirectory}
 
+	// Pull or build every configured service image.
+	if err := containers.BuildContainers(ctx, options); err != nil {
+		t.Fatalf("run Redis build flow: %v", err)
+	}
+
 	if err := containers.UpContainers(ctx, options); err != nil {
 		t.Fatalf("run Redis up flow: %v", err)
 	}

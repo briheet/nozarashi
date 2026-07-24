@@ -41,6 +41,9 @@ func Execute(ctx context.Context) int {
 	// This is the down command for stopping the containers
 	rootCmd.AddCommand(DownCmd())
 
+	// This is the build command for preparing service images
+	rootCmd.AddCommand(BuildCmd())
+
 	// Execute and return if any error
 	if err := rootCmd.Execute(); err != nil {
 		log.Printf("Error: %v", err)

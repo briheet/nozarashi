@@ -72,6 +72,15 @@ func ContainerImageInspectArgs(reference string) []string {
 	}
 }
 
+// ContainerImageDeleteArgs builds arguments for deleting an image.
+func ContainerImageDeleteArgs(reference string) []string {
+	return []string{
+		"image",
+		"delete",
+		reference,
+	}
+}
+
 // ContainerVolumeCreateArgs builds arguments for creating a volume.
 func ContainerVolumeCreateArgs(name string) []string {
 	return []string{
@@ -195,6 +204,14 @@ func ContainerStartArgs(name string) []string {
 func ContainerStopArgs(name string) []string {
 	return []string{
 		"stop",
+		name,
+	}
+}
+
+// ContainerDeleteArgs builds arguments for deleting a container.
+func ContainerDeleteArgs(name string) []string {
+	return []string{
+		"delete",
 		name,
 	}
 }
