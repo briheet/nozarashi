@@ -3,6 +3,7 @@ package containers
 import (
 	"fmt"
 	"slices"
+	"strconv"
 
 	"github.com/briheet/nozarashi/internal/specs"
 )
@@ -214,4 +215,17 @@ func ContainerDeleteArgs(name string) []string {
 		"delete",
 		name,
 	}
+}
+
+// ContainerLogsArgs builds arguments for getting container logs.
+func ContainerLogsArgs(name string, number int) []string {
+	args := []string{
+		"logs",
+	}
+
+	if number > 0 {
+		args = append(args, "-n", strconv.Itoa(number))
+	}
+
+	return append(args, name)
 }

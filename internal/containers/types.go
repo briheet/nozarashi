@@ -7,4 +7,7 @@ type ContainerOptions struct {
 
 	// Arguments such as container names
 	Args []string
+
+	// Number of line for logs to print
+	Number int
 }

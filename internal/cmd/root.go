@@ -44,6 +44,9 @@ func Execute(ctx context.Context) int {
 	// This is the build command for preparing service images
 	rootCmd.AddCommand(BuildCmd())
 
+	// This is the logs command for getting logs of containers
+	rootCmd.AddCommand(LogsCmd())
+
 	// Execute and return if any error
 	if err := rootCmd.Execute(); err != nil {
 		log.Printf("Error: %v", err)

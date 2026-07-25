@@ -87,3 +87,21 @@ func TestContainerImageDeleteArgs(t *testing.T) {
 		t.Fatalf("unexpected image delete arguments:\ngot:  %q\nwant: %q", got, want)
 	}
 }
+
+func TestContainerLogsArgs(t *testing.T) {
+	got := ContainerLogsArgs("example-api-1", 25)
+	want := []string{"logs", "-n", "25", "example-api-1"}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("unexpected container logs arguments:\ngot:  %q\nwant: %q", got, want)
+	}
+}
+
+func TestContainerLogsArgsWithoutNumber(t *testing.T) {
+	got := ContainerLogsArgs("example-api-1", 0)
+	want := []string{"logs", "example-api-1"}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("unexpected container logs arguments:\ngot:  %q\nwant: %q", got, want)
+	}
+}

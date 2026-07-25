@@ -66,6 +66,13 @@ func TestPositionalServiceLifecycle(t *testing.T) {
 		t.Fatalf("positional Redis container is not running:\n%s", output)
 	}
 
+	// Get logs only from the Redis service.
+	logOptions := options
+	logOptions.Number = 5
+	if err := containers.LogsContainers(ctx, logOptions); err != nil {
+		t.Fatalf("logs positional Redis service: %v", err)
+	}
+
 	// Stop only the Redis service.
 	if err := containers.DownContainers(ctx, options); err != nil {
 		t.Fatalf("down positional Redis service: %v", err)
