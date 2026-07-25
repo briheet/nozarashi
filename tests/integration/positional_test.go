@@ -24,13 +24,13 @@ func TestPositionalServiceLifecycle(t *testing.T) {
 	if !ok {
 		t.Fatal("resolve integration test path")
 	}
-	configDirectory := filepath.Join(filepath.Dir(testFile), "..", "data")
+	configPath := filepath.Join(filepath.Dir(testFile), "..", "data", "config.toml")
 
 	ctx, cancel := context.WithTimeout(t.Context(), 3*time.Minute)
 	defer cancel()
 
 	options := containers.ContainerOptions{
-		FilePath: configDirectory,
+		FilePath: configPath,
 		Args:     []string{"redis"},
 	}
 
@@ -46,6 +46,11 @@ func TestPositionalServiceLifecycle(t *testing.T) {
 	)
 	if output, err := imageInspectCmd.CombinedOutput(); err != nil {
 		t.Fatalf("inspect positional Redis image: %v\n%s", err, output)
+	}
+
+	// Create the project resources before starting the selected service.
+	if err := containers.CreateResources(ctx, options); err != nil {
+		t.Fatalf("create positional Redis resources: %v", err)
 	}
 
 	// Start only the Redis service.

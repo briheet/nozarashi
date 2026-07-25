@@ -31,6 +31,24 @@ var ContainerSystemStopArgs = []string{
 	"stop",
 }
 
+// Args for listing local container DNS domains.
+var ContainerSystemDNSListArgs = []string{
+	"system",
+	"dns",
+	"list",
+	"--quiet",
+}
+
+// ContainerSystemDNSCreateArgs builds arguments for creating a local DNS domain.
+func ContainerSystemDNSCreateArgs(domain string) []string {
+	return []string{
+		"system",
+		"dns",
+		"create",
+		domain,
+	}
+}
+
 // ContainerImagePullArgs builds arguments for pulling an OCI image.
 func ContainerImagePullArgs(reference string, platform string) []string {
 	return []string{

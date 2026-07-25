@@ -36,6 +36,9 @@ func Execute(ctx context.Context) int {
 	// apple container's cli for managing it
 	rootCmd.AddCommand(system.SystemCmd())
 
+	// This is the create command for preparing project resources
+	rootCmd.AddCommand(CreateCmd())
+
 	// This is the up command for starting the containers
 	rootCmd.AddCommand(UpCmd())
 

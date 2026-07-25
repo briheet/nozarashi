@@ -61,6 +61,15 @@ func TestContainerRunArgs(t *testing.T) {
 	}
 }
 
+func TestContainerSystemDNSCreateArgs(t *testing.T) {
+	got := ContainerSystemDNSCreateArgs("example")
+	want := []string{"system", "dns", "create", "example"}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("unexpected DNS create arguments:\ngot:  %q\nwant: %q", got, want)
+	}
+}
+
 func TestContainerStopArgs(t *testing.T) {
 	got := ContainerStopArgs("example-api-1")
 	want := []string{"stop", "example-api-1"}

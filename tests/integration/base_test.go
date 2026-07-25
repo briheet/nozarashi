@@ -32,17 +32,22 @@ func TestRedisServiceLifecycle(t *testing.T) {
 	if !ok {
 		t.Fatal("resolve integration test path")
 	}
-	configDirectory := filepath.Join(filepath.Dir(testFile), "..", "data")
+	configPath := filepath.Join(filepath.Dir(testFile), "..", "data", "config.toml")
 
 	// Run the lifecycle flow with a bounded integration timeout.
 	ctx, cancel := context.WithTimeout(t.Context(), 3*time.Minute)
 	defer cancel()
 
-	options := containers.ContainerOptions{FilePath: configDirectory}
+	options := containers.ContainerOptions{FilePath: configPath}
 
 	// Pull or build every configured service image.
 	if err := containers.BuildContainers(ctx, options); err != nil {
 		t.Fatalf("run Redis build flow: %v", err)
+	}
+
+	// Create every configured project volume and network.
+	if err := containers.CreateResources(ctx, options); err != nil {
+		t.Fatalf("run Redis create flow: %v", err)
 	}
 
 	if err := containers.UpContainers(ctx, options); err != nil {

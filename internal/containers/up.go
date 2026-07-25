@@ -35,11 +35,6 @@ func UpContainers(ctx context.Context, opts ContainerOptions) error {
 		return err
 	}
 
-	// Create Resources
-	if err := createResources(ctx, graph); err != nil {
-		return err
-	}
-
 	// Create Service Containers
 	if err := createContainers(ctx, graph); err != nil {
 		return err
