@@ -1,0 +1,26 @@
+[project]
+name = "simple-containerfile"
+version = "0.1.0"
+description = "Python hello world built from a Containerfile"
+profile = "dev"
+
+[inputs.nixpkgs]
+type = "flake"
+source = "github:NixOS/nixpkgs/nixos-unstable"
+
+[services.hello]
+type = "path"
+reference = "./app"
+networks = ["default"]
+replicas = 1
+policy = "no"
+
+[[services.hello.volumes]]
+name = "data"
+path = "/data"
+
+[volumes.data]
+driver = "local"
+
+[networks.default]
+driver = "default"

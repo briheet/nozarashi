@@ -63,6 +63,25 @@ func TestParseSimpleDockerExample(t *testing.T) {
 	}
 }
 
+func TestParseSimpleContainerfileExample(t *testing.T) {
+	configPath := filepath.Join(
+		"..",
+		"..",
+		"examples",
+		"simple_containerfile",
+		"nozarashi.toml",
+	)
+
+	project, err := ParseTOMLConfig(t.Context(), configPath)
+	if err != nil {
+		t.Fatalf("parse simple Containerfile example: %v", err)
+	}
+
+	if project.Services["hello"].Reference != "./app" {
+		t.Fatalf("hello service build context is missing")
+	}
+}
+
 func TestParseInputExamples(t *testing.T) {
 	examples := []struct {
 		name      string

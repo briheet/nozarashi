@@ -8,5 +8,6 @@ Input references:
 
 Complete environments:
 
+- [`simple_containerfile`](simple_containerfile): Python hello world from a Containerfile
 - [`simple_docker`](simple_docker): OCI services with a Dockerfile backend
 - [`mix_docker_nix`](mix_docker_nix): Dockerfile backend with local Nix services
