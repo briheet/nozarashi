@@ -11,7 +11,6 @@ import (
 
 // Helps in creating Resources
 func createResources(ctx context.Context, graph *specs.Graph) error {
-
 	// Create volumes defined in the graph
 	if err := createVolumes(ctx, graph); err != nil {
 		return err

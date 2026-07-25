@@ -115,3 +115,103 @@ func removeImages(ctx context.Context, graph *specs.Graph) error {
 
 	return nil
 }
+
+// Removes project networks.
+func removeNetworks(ctx context.Context, graph *specs.Graph) error {
+	for _, resource := range graph.Resources {
+		if resource.Kind != specs.ResourceNetwork {
+			continue
+		}
+
+		// Skip project networks that have not been created.
+		inspectNetworkCmd := exec.CommandContext(
+			ctx,
+			ContainerCliName,
+			ContainerNetworkInspectArgs(resource.Name)...,
+		)
+		if err := inspectNetworkCmd.Run(); err != nil {
+			continue
+		}
+
+		deleteNetworkCmd := exec.CommandContext(
+			ctx,
+			ContainerCliName,
+			ContainerNetworkDeleteArgs(resource.Name)...,
+		)
+		deleteNetworkCmd.Stderr = os.Stderr
+		deleteNetworkCmd.Stdout = os.Stdout
+
+		if err := deleteNetworkCmd.Run(); err != nil {
+			return fmt.Errorf("delete network %q: %w", resource.Name, err)
+		}
+	}
+
+	return nil
+}
+
+// Removes project volumes.
+func removeVolumes(ctx context.Context, graph *specs.Graph) error {
+	for _, resource := range graph.Resources {
+		if resource.Kind != specs.ResourceVolume {
+			continue
+		}
+
+		// Skip project volumes that have not been created.
+		inspectVolumeCmd := exec.CommandContext(
+			ctx,
+			ContainerCliName,
+			ContainerVolumeInspectArgs(resource.Name)...,
+		)
+		if err := inspectVolumeCmd.Run(); err != nil {
+			continue
+		}
+
+		deleteVolumeCmd := exec.CommandContext(
+			ctx,
+			ContainerCliName,
+			ContainerVolumeDeleteArgs(resource.Name)...,
+		)
+		deleteVolumeCmd.Stderr = os.Stderr
+		deleteVolumeCmd.Stdout = os.Stdout
+
+		if err := deleteVolumeCmd.Run(); err != nil {
+			return fmt.Errorf("delete volume %q: %w", resource.Name, err)
+		}
+	}
+
+	return nil
+}
+
+// Removes every service image declared by the project.
+func destroyImages(ctx context.Context, graph *specs.Graph) error {
+	for _, serviceNode := range slices.Backward(graph.Nodes) {
+		imageName := serviceNode.ServiceName
+		if serviceNode.Spec.Type == specs.ServiceTypeOCI {
+			imageName = serviceNode.Spec.Reference
+		}
+
+		// Skip service images that are not present.
+		inspectImageCmd := exec.CommandContext(
+			ctx,
+			ContainerCliName,
+			ContainerImageInspectArgs(imageName)...,
+		)
+		if err := inspectImageCmd.Run(); err != nil {
+			continue
+		}
+
+		deleteImageCmd := exec.CommandContext(
+			ctx,
+			ContainerCliName,
+			ContainerImageDeleteArgs(imageName)...,
+		)
+		deleteImageCmd.Stderr = os.Stderr
+		deleteImageCmd.Stdout = os.Stdout
+
+		if err := deleteImageCmd.Run(); err != nil {
+			return fmt.Errorf("delete service image %q: %w", imageName, err)
+		}
+	}
+
+	return nil
+}

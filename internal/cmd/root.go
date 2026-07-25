@@ -14,8 +14,9 @@ func Execute(ctx context.Context) int {
 	// This is the base command for nozarashi
 	// All entry points, subcommands and such go through this
 	rootCmd := &cobra.Command{
-		Use:   "nozarashi",
-		Short: "Nozarashi is a cli based application for orchestrating apple container.",
+		Use:                   "nozarashi",
+		Short:                 "Nozarashi is a cli based application for orchestrating apple container.",
+		DisableFlagsInUseLine: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			printAscii()
 			return cmd.Help()
@@ -52,6 +53,9 @@ func Execute(ctx context.Context) int {
 
 	// This is the exec command for running commands in service containers
 	rootCmd.AddCommand(ExecCmd())
+
+	// This is the destroy command for deleting all project runtime objects
+	rootCmd.AddCommand(DestroyCmd())
 
 	// Execute and return if any error
 	if err := rootCmd.Execute(); err != nil {

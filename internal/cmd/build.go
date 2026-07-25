@@ -14,7 +14,7 @@ func BuildCmd() *cobra.Command {
 
 	buildCmd := &cobra.Command{
 		Use:   "build [services...]",
-		Short: "Build images, remove existing containers.",
+		Short: "Build images, stops and removes existing containers",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Args = args
 			return containers.BuildContainers(cmd.Context(), opts)

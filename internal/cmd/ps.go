@@ -16,7 +16,7 @@ func PsCmd() *cobra.Command {
 	// This command and its subcommands (if i add any) would orchestrate containers handling
 	psCmd := &cobra.Command{
 		Use:   "ps",
-		Short: "List running containers.",
+		Short: "List running containers",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return containers.PsContainers(cmd.Context(), opts)

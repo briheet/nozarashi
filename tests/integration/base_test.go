@@ -123,4 +123,22 @@ func TestRedisServiceLifecycle(t *testing.T) {
 	if !bytes.Contains(output, []byte(`"state" : "stopped"`)) {
 		t.Fatalf("Redis container is not stopped:\n%s", output)
 	}
+
+	// Destroy every runtime object declared by the project.
+	if err := containers.DestroyContainers(ctx, options); err != nil {
+		t.Fatalf("run Redis destroy flow: %v", err)
+	}
+
+	// Confirm the container, network, volume and image were deleted.
+	for name, args := range map[string][]string{
+		"container": containers.ContainerInspectArgs(redisContainer),
+		"network":   containers.ContainerNetworkInspectArgs(redisNetwork),
+		"volume":    containers.ContainerVolumeInspectArgs(redisVolume),
+		"image":     containers.ContainerImageInspectArgs(redisImage),
+	} {
+		inspectCmd := exec.CommandContext(ctx, containers.ContainerCliName, args...)
+		if output, err := inspectCmd.CombinedOutput(); err == nil {
+			t.Fatalf("%s still exists after destroy:\n%s", name, output)
+		}
+	}
 }

@@ -100,6 +100,15 @@ func ContainerVolumeInspectArgs(name string) []string {
 	}
 }
 
+// ContainerVolumeDeleteArgs builds arguments for deleting a volume.
+func ContainerVolumeDeleteArgs(name string) []string {
+	return []string{
+		"volume",
+		"delete",
+		name,
+	}
+}
+
 // ContainerNetworkCreateArgs builds arguments for creating a network.
 func ContainerNetworkCreateArgs(name string) []string {
 	return []string{
@@ -114,6 +123,15 @@ func ContainerNetworkInspectArgs(name string) []string {
 	return []string{
 		"network",
 		"inspect",
+		name,
+	}
+}
+
+// ContainerNetworkDeleteArgs builds arguments for deleting a network.
+func ContainerNetworkDeleteArgs(name string) []string {
+	return []string{
+		"network",
+		"delete",
 		name,
 	}
 }

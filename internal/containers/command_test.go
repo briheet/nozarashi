@@ -147,3 +147,21 @@ func TestContainerExecArgs(t *testing.T) {
 		t.Fatalf("unexpected container exec arguments:\ngot:  %q\nwant: %q", got, want)
 	}
 }
+
+func TestContainerVolumeDeleteArgs(t *testing.T) {
+	got := ContainerVolumeDeleteArgs("example-data")
+	want := []string{"volume", "delete", "example-data"}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("unexpected volume delete arguments:\ngot:  %q\nwant: %q", got, want)
+	}
+}
+
+func TestContainerNetworkDeleteArgs(t *testing.T) {
+	got := ContainerNetworkDeleteArgs("example-default")
+	want := []string{"network", "delete", "example-default"}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("unexpected network delete arguments:\ngot:  %q\nwant: %q", got, want)
+	}
+}
