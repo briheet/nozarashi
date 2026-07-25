@@ -229,3 +229,16 @@ func ContainerLogsArgs(name string, number int) []string {
 
 	return append(args, name)
 }
+
+// ContainerListArgs builds arguments for listing containers as JSON.
+func ContainerListArgs(all bool) []string {
+	args := []string{
+		"list",
+	}
+
+	if all {
+		args = append(args, "--all")
+	}
+
+	return append(args, "--format", "json")
+}

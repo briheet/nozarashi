@@ -47,6 +47,9 @@ func Execute(ctx context.Context) int {
 	// This is the logs command for getting logs of containers
 	rootCmd.AddCommand(LogsCmd())
 
+	// This is the ps command for listing running containers
+	rootCmd.AddCommand(PsCmd())
+
 	// Execute and return if any error
 	if err := rootCmd.Execute(); err != nil {
 		log.Printf("Error: %v", err)

@@ -7,6 +7,7 @@ import (
 func SystemCmd() *cobra.Command {
 	systemCmd := &cobra.Command{
 		Use:   "system",
+		Args:  cobra.NoArgs,
 		Short: "Manage the container system.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cmd.Help()

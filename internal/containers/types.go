@@ -10,4 +10,7 @@ type ContainerOptions struct {
 
 	// Number of line for logs to print
 	Number int
+
+	// List all containers instead of project containers
+	All bool
 }

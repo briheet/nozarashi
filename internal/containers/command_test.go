@@ -105,3 +105,21 @@ func TestContainerLogsArgsWithoutNumber(t *testing.T) {
 		t.Fatalf("unexpected container logs arguments:\ngot:  %q\nwant: %q", got, want)
 	}
 }
+
+func TestContainerListArgs(t *testing.T) {
+	got := ContainerListArgs(false)
+	want := []string{"list", "--format", "json"}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("unexpected container list arguments:\ngot:  %q\nwant: %q", got, want)
+	}
+}
+
+func TestContainerListAllArgs(t *testing.T) {
+	got := ContainerListArgs(true)
+	want := []string{"list", "--all", "--format", "json"}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("unexpected container list all arguments:\ngot:  %q\nwant: %q", got, want)
+	}
+}
