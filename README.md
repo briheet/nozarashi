@@ -10,32 +10,43 @@ containers, networks and volumes as one project.
 
 ## Installation
 
-Install using Go:
+Using Nix:
 
 ```sh
-go install github.com/briheet/nozarashi
+# Try before installing ?
+nix run github:briheet/nozarashi
+
+# Install
+nix profile install github:briheet/nozarashi
 ```
 
+Using Go:
+
+```sh
+# Try before installing ?
+go run github.com/briheet/nozarashi/cmd/nozarashi@latest
+
+# Install
+go install github.com/briheet/nozarashi/cmd/nozarashi@latest
+```
 
 ## Requirements
 
 - macOS with Apple Container installed
 - Nix when building services from Nix inputs
-- Go 1.25 or newer when building Nozarashi from source
 
 ## Quick start
-
-Build the CLI:
-
-```sh
-go build -o bin/nozarashi ./cmd/nozarashi
-```
 
 From a directory containing `nozarashi.toml`:
 
 ```sh
+# To create resource(volumes and networks) and dns
 sudo nozarashi create
+
+# To build and pull images
 nozarashi build
+
+# To start containers
 nozarashi up
 ```
 
@@ -46,9 +57,16 @@ DNS registration requires administrator privileges; see Apple’s
 Use a service name to target one service:
 
 ```sh
+# Stop the image's container if its running and recreate its image
 nozarashi build backend
+
+# Start the container from an image
 nozarashi up backend
+
+# Get logs for the container specified
 nozarashi logs backend
+
+# Exec commands 
 nozarashi exec backend sh
 ```
 
