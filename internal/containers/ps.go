@@ -90,7 +90,11 @@ func selectProjectContainers(containers *specs.Containers, graph *specs.Graph, a
 		for replica := 1; replica <= replicas; replica++ {
 			containerNames = append(
 				containerNames,
-				fmt.Sprintf("%s-%d", serviceNode.ServiceName, replica),
+				serviceContainerName(
+					graph.Project.Project.Name,
+					serviceNode.ServiceName,
+					replica,
+				),
 			)
 		}
 	}

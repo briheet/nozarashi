@@ -17,7 +17,7 @@ const redisImage = "docker.io/library/redis:7-alpine"
 const (
 	redisVolume    = "nozarashi-integration-redis-data"
 	redisNetwork   = "nozarashi-integration-default"
-	redisContainer = "nozarashi-integration-redis-1"
+	redisContainer = "nozarashi-integration-redis-1.nozarashi-integration"
 )
 
 // TestRedisServiceLifecycle checks the complete up and down flow against Apple Containers.

@@ -1,0 +1,82 @@
+[project]
+name = "mix-docker-nix"
+version = "0.1.0"
+description = "Dockerfile backend with Nix-built PostgreSQL and Redis"
+profile = "dev"
+
+[inputs.services]
+type = "path"
+source = "./services.nix"
+
+[services.postgres]
+type = "input"
+reference = "services"
+attribute = "postgresql"
+entrypoint = ["/bin/start-postgres"]
+networks = ["default"]
+replicas = 1
+policy = "unless-stopped"
+
+[services.postgres.environment]
+PATH = "/bin"
+POSTGRES_DB = "nozarashi"
+POSTGRES_USER = "nozarashi"
+POSTGRES_PASSWORD = "nozarashi"
+PGDATA = "/var/lib/postgresql/data/pgdata"
+
+[[services.postgres.volumes]]
+name = "postgres-data"
+path = "/var/lib/postgresql/data"
+
+[services.redis]
+type = "input"
+reference = "services"
+attribute = "redis"
+entrypoint = ["/bin/start-redis"]
+networks = ["default"]
+replicas = 1
+policy = "unless-stopped"
+
+[services.redis.environment]
+PATH = "/bin"
+
+[[services.redis.volumes]]
+name = "redis-data"
+path = "/data"
+
+[services.backend]
+type = "path"
+reference = "./backend"
+networks = ["default"]
+depends_on = ["postgres", "redis"]
+replicas = 1
+policy = "on-failure"
+
+[services.backend.environment]
+PORT = "8080"
+CORS_ALLOWED_ORIGIN = "http://localhost:3000"
+READ_HEADER_TIMEOUT = "5"
+READ_TIMEOUT = "15"
+WRITE_TIMEOUT = "15"
+IDLE_TIMEOUT = "60"
+DATABASEURL = "postgres://nozarashi:nozarashi@mix-docker-nix-postgres-1.mix-docker-nix:5432/nozarashi?sslmode=disable"
+DB_MAX_CONNS = "10"
+DB_MIN_CONNS = "1"
+DB_MAX_CONN_LIFETIME = "30m"
+DB_MAX_CONN_IDLE_TIME = "5m"
+REDIS_ADDRESS = "mix-docker-nix-redis-1.mix-docker-nix:6379"
+REDIS_PASSWORD = ""
+REDIS_DATABASE = "0"
+
+[[services.backend.ports]]
+host = 18080
+container = 8080
+
+[volumes.postgres-data]
+driver = "local"
+
+[volumes.redis-data]
+driver = "local"
+
+[networks.default]
+driver = "default"

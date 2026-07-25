@@ -65,7 +65,11 @@ func getContainerLogs(ctx context.Context, graph *specs.Graph, number int) (*spe
 		replicas := max(serviceNode.Spec.Replicas, 1)
 
 		for replica := 1; replica <= replicas; replica++ {
-			containerName := fmt.Sprintf("%s-%d", serviceNode.ServiceName, replica)
+			containerName := serviceContainerName(
+				graph.Project.Project.Name,
+				serviceNode.ServiceName,
+				replica,
+			)
 
 			logsCmd := exec.CommandContext(
 				ctx,

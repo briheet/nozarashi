@@ -161,6 +161,15 @@ func buildServiceNodes(projectSpecs *specs.Specs) []*specs.ServiceNode {
 	return serviceNodes
 }
 
+// Resolves registry references and explicitly tagged local project images.
+func serviceImageReference(serviceNode *specs.ServiceNode) string {
+	if serviceNode.Spec.Type == specs.ServiceTypeOCI {
+		return serviceNode.Spec.Reference
+	}
+
+	return fmt.Sprintf("%s:latest", serviceNode.ServiceName)
+}
+
 // Builds or pulls all service images.
 func buildServiceImages(ctx context.Context, graph *specs.Graph) error {
 	// Build or pull every service image in dependency order.

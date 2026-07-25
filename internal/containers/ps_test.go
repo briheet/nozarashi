@@ -9,12 +9,15 @@ import (
 func TestSelectProjectContainers(t *testing.T) {
 	containers := &specs.Containers{
 		Items: []specs.Container{
-			{ID: "example-api-1"},
-			{ID: "example-worker-1"},
-			{ID: "another-project-api-1"},
+			{ID: "example-api-1.example"},
+			{ID: "example-worker-1.example"},
+			{ID: "another-project-api-1.another-project"},
 		},
 	}
 	graph := &specs.Graph{
+		Project: &specs.Specs{
+			Project: specs.ProjectSpecs{Name: "example"},
+		},
 		Nodes: []*specs.ServiceNode{
 			{
 				ServiceName: "example-worker",
@@ -25,7 +28,7 @@ func TestSelectProjectContainers(t *testing.T) {
 
 	selected := selectProjectContainers(containers, graph, false)
 
-	if len(selected.Items) != 1 || selected.Items[0].ID != "example-worker-1" {
+	if len(selected.Items) != 1 || selected.Items[0].ID != "example-worker-1.example" {
 		t.Fatalf("unexpected selected containers: %#v", selected.Items)
 	}
 }

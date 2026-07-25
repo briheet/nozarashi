@@ -45,12 +45,19 @@ func ExecContainers(ctx context.Context, opts ContainerOptions) error {
 		return err
 	}
 
-	return execServiceContainer(ctx, serviceName, graph.Nodes[0], opts)
+	return execServiceContainer(
+		ctx,
+		graph.Project.Project.Name,
+		serviceName,
+		graph.Nodes[0],
+		opts,
+	)
 }
 
 // Executes a command in the selected service replica.
 func execServiceContainer(
 	ctx context.Context,
+	projectName string,
 	serviceName string,
 	serviceNode *specs.ServiceNode,
 	opts ContainerOptions,
@@ -65,7 +72,11 @@ func execServiceContainer(
 		)
 	}
 
-	containerName := fmt.Sprintf("%s-%d", serviceNode.ServiceName, opts.Replica)
+	containerName := serviceContainerName(
+		projectName,
+		serviceNode.ServiceName,
+		opts.Replica,
+	)
 	execCmd := exec.CommandContext(
 		ctx,
 		ContainerCliName,

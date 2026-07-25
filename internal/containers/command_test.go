@@ -26,7 +26,7 @@ func TestContainerRunArgs(t *testing.T) {
 
 	got := ContainerRunArgs(
 		"example",
-		"example-api-1",
+		"example-api-1.example",
 		"example-api",
 		"linux/arm64",
 		service,
@@ -35,9 +35,11 @@ func TestContainerRunArgs(t *testing.T) {
 		"run",
 		"--detach",
 		"--name",
-		"example-api-1",
+		"example-api-1.example",
 		"--platform",
 		"linux/arm64",
+		"--dns-search",
+		"example",
 		"--env",
 		"MODE=test",
 		"--env",

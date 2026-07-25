@@ -63,7 +63,11 @@ func inspectContainers(ctx context.Context, graph *specs.Graph) (*specs.Containe
 		for replica := 1; replica <= replicas; replica++ {
 			containerNames = append(
 				containerNames,
-				fmt.Sprintf("%s-%d", serviceNode.ServiceName, replica),
+				serviceContainerName(
+					graph.Project.Project.Name,
+					serviceNode.ServiceName,
+					replica,
+				),
 			)
 		}
 	}

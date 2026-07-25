@@ -16,7 +16,11 @@ func stopContainers(ctx context.Context, graph *specs.Graph) error {
 		replicas := max(serviceNode.Spec.Replicas, 1)
 
 		for replica := replicas; replica >= 1; replica-- {
-			containerName := fmt.Sprintf("%s-%d", serviceNode.ServiceName, replica)
+			containerName := serviceContainerName(
+				graph.Project.Project.Name,
+				serviceNode.ServiceName,
+				replica,
+			)
 
 			// Inspect containers running and report back.
 			// Skip service containers that have not been created.
@@ -53,7 +57,11 @@ func removeContainers(ctx context.Context, graph *specs.Graph) error {
 		replicas := max(serviceNode.Spec.Replicas, 1)
 
 		for replica := replicas; replica >= 1; replica-- {
-			containerName := fmt.Sprintf("%s-%d", serviceNode.ServiceName, replica)
+			containerName := serviceContainerName(
+				graph.Project.Project.Name,
+				serviceNode.ServiceName,
+				replica,
+			)
 
 			// Skip service containers that have not been created.
 			inspectContainerCmd := exec.CommandContext(
@@ -90,11 +98,13 @@ func removeImages(ctx context.Context, graph *specs.Graph) error {
 			continue
 		}
 
+		imageName := serviceImageReference(serviceNode)
+
 		// Skip project images that have not been built.
 		inspectImageCmd := exec.CommandContext(
 			ctx,
 			ContainerCliName,
-			ContainerImageInspectArgs(serviceNode.ServiceName)...,
+			ContainerImageInspectArgs(imageName)...,
 		)
 		if err := inspectImageCmd.Run(); err != nil {
 			continue
@@ -103,13 +113,13 @@ func removeImages(ctx context.Context, graph *specs.Graph) error {
 		deleteImageCmd := exec.CommandContext(
 			ctx,
 			ContainerCliName,
-			ContainerImageDeleteArgs(serviceNode.ServiceName)...,
+			ContainerImageDeleteArgs(imageName)...,
 		)
 		deleteImageCmd.Stderr = os.Stderr
 		deleteImageCmd.Stdout = os.Stdout
 
 		if err := deleteImageCmd.Run(); err != nil {
-			return fmt.Errorf("delete service image %q: %w", serviceNode.ServiceName, err)
+			return fmt.Errorf("delete service image %q: %w", imageName, err)
 		}
 	}
 
@@ -185,10 +195,7 @@ func removeVolumes(ctx context.Context, graph *specs.Graph) error {
 // Removes every service image declared by the project.
 func destroyImages(ctx context.Context, graph *specs.Graph) error {
 	for _, serviceNode := range slices.Backward(graph.Nodes) {
-		imageName := serviceNode.ServiceName
-		if serviceNode.Spec.Type == specs.ServiceTypeOCI {
-			imageName = serviceNode.Spec.Reference
-		}
+		imageName := serviceImageReference(serviceNode)
 
 		// Skip service images that are not present.
 		inspectImageCmd := exec.CommandContext(

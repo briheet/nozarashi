@@ -135,17 +135,17 @@ func createResources(ctx context.Context, graph *specs.Graph) error {
 // Creates and starts service containers in dependency order.
 func createContainers(ctx context.Context, graph *specs.Graph) error {
 	for _, serviceNode := range graph.Nodes {
-		// OCI services use their registry reference. Built services use their local image tag.
-		imageName := serviceNode.ServiceName
-		if serviceNode.Spec.Type == specs.ServiceTypeOCI {
-			imageName = serviceNode.Spec.Reference
-		}
+		imageName := serviceImageReference(serviceNode)
 
 		// An omitted replica count creates one container.
 		replicas := max(serviceNode.Spec.Replicas, 1)
 
 		for replica := 1; replica <= replicas; replica++ {
-			containerName := fmt.Sprintf("%s-%d", serviceNode.ServiceName, replica)
+			containerName := serviceContainerName(
+				graph.Project.Project.Name,
+				serviceNode.ServiceName,
+				replica,
+			)
 
 			// Start an existing container without recreating its resources.
 			inspectContainerCmd := exec.CommandContext(

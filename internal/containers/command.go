@@ -169,6 +169,8 @@ func ContainerRunArgs(
 		containerName,
 		"--platform",
 		platform,
+		"--dns-search",
+		projectName,
 	}
 
 	// Keep environment arguments stable across runs.
