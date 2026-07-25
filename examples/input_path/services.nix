@@ -1,0 +1,4 @@
+{ pkgs }:
+{
+  redis = pkgs.redis;
+}

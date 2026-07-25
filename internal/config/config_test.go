@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/briheet/nozarashi/internal/specs"
 )
 
 func TestParseTOMLConfigPreservesEnvironmentKeyCase(t *testing.T) {
@@ -58,5 +60,38 @@ func TestParseSimpleDockerExample(t *testing.T) {
 	}
 	if project.Services["backend"].Environment["REDIS_ADDRESS"] == "" {
 		t.Fatalf("backend Redis address is missing")
+	}
+}
+
+func TestParseInputExamples(t *testing.T) {
+	examples := []struct {
+		name      string
+		inputName string
+		inputType specs.InputType
+	}{
+		{name: "input_flake", inputName: "nixpkgs", inputType: specs.InputTypeNix},
+		{name: "input_git", inputName: "nixpkgs", inputType: specs.InputTypeGit},
+		{name: "input_path", inputName: "services", inputType: specs.InputTypeLocal},
+	}
+
+	for _, example := range examples {
+		t.Run(example.name, func(t *testing.T) {
+			configPath := filepath.Join(
+				"..",
+				"..",
+				"examples",
+				example.name,
+				"nozarashi.toml",
+			)
+
+			project, err := ParseTOMLConfig(t.Context(), configPath)
+			if err != nil {
+				t.Fatalf("parse %s example: %v", example.name, err)
+			}
+
+			if project.Inputs[example.inputName].Type != example.inputType {
+				t.Fatalf("%s input type is not %q", example.name, example.inputType)
+			}
+		})
 	}
 }

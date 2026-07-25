@@ -86,7 +86,7 @@ nozarashi exec backend sh
 | `destroy` | Delete project containers, images and resources |
 
 See the [configuration specification](docs/SPEC.md) and
-[Docker example](examples/simple_docker) for a complete setup.
+[examples](examples) for complete setups and every supported input type.
 
 ## License
 

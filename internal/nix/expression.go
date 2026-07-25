@@ -4,9 +4,12 @@ package nix
 const FlakeInputExpression = `
   input = builtins.getFlake %s;
 
-  package = builtins.getAttr %s (
-    builtins.getAttr system input.packages
-  );
+  packages =
+    if builtins.hasAttr "packages" input
+    then builtins.getAttr system input.packages
+    else builtins.getAttr system input.legacyPackages;
+
+  package = builtins.getAttr %s packages;
 `
 
 // GitInputRefExpression adds an optional Git reference.

@@ -33,7 +33,7 @@
             version = "0.1.0";
 
             src = self;
-            vendorHash = "sha256-wAaN5GIRdbU6cPDHowHFvdCahRdbNPjzawA0HhzzYlA=";
+            vendorHash = "sha256-HOH/N4c2CKo+2CKypnuJIe5s/JGebmWlmaFqXPjGlqg=";
 
             subPackages = [ "cmd/nozarashi" ];
             ldflags = [

@@ -1,0 +1,29 @@
+[project]
+name = "input-flake"
+version = "0.1.0"
+description = "Redis built from a Nix flake input"
+profile = "dev"
+
+[inputs.nixpkgs]
+type = "flake"
+source = "github:NixOS/nixpkgs/nixos-unstable"
+
+[services.redis]
+type = "input"
+reference = "nixpkgs"
+attribute = "redis"
+entrypoint = ["/bin/redis-server"]
+command = ["--protected-mode", "no", "--appendonly", "yes", "--dir", "/data"]
+networks = ["default"]
+replicas = 1
+policy = "unless-stopped"
+
+[[services.redis.volumes]]
+name = "redis-data"
+path = "/data"
+
+[volumes.redis-data]
+driver = "local"
+
+[networks.default]
+driver = "default"

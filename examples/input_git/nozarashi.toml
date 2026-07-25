@@ -1,0 +1,30 @@
+[project]
+name = "input-git"
+version = "0.1.0"
+description = "Redis built from a Git input"
+profile = "dev"
+
+[inputs.nixpkgs]
+type = "git"
+source = "https://github.com/NixOS/nixpkgs.git"
+ref = "nixos-unstable"
+
+[services.redis]
+type = "input"
+reference = "nixpkgs"
+attribute = "redis"
+entrypoint = ["/bin/redis-server"]
+command = ["--protected-mode", "no", "--appendonly", "yes", "--dir", "/data"]
+networks = ["default"]
+replicas = 1
+policy = "unless-stopped"
+
+[[services.redis.volumes]]
+name = "redis-data"
+path = "/data"
+
+[volumes.redis-data]
+driver = "local"
+
+[networks.default]
+driver = "default"

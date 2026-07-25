@@ -61,10 +61,6 @@ func createProjectDNS(ctx context.Context, domain string) error {
 		return fmt.Errorf("check container system status: %w", err)
 	}
 
-	if os.Geteuid() != 0 {
-		return nil
-	}
-
 	listDNSCmd := exec.CommandContext(
 		ctx,
 		ContainerCliName,
@@ -77,6 +73,13 @@ func createProjectDNS(ctx context.Context, domain string) error {
 
 	if slices.Contains(strings.Fields(string(output)), domain) {
 		return nil
+	}
+
+	if os.Geteuid() != 0 {
+		return fmt.Errorf(
+			"create container DNS domain %q: administrator privileges required; rerun with sudo",
+			domain,
+		)
 	}
 
 	createDNSCmd := exec.CommandContext(

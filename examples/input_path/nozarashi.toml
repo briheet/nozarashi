@@ -1,0 +1,29 @@
+[project]
+name = "input-path"
+version = "0.1.0"
+description = "Redis built from a local Nix input"
+profile = "dev"
+
+[inputs.services]
+type = "path"
+source = "./services.nix"
+
+[services.redis]
+type = "input"
+reference = "services"
+attribute = "redis"
+entrypoint = ["/bin/redis-server"]
+command = ["--protected-mode", "no", "--appendonly", "yes", "--dir", "/data"]
+networks = ["default"]
+replicas = 1
+policy = "unless-stopped"
+
+[[services.redis.volumes]]
+name = "redis-data"
+path = "/data"
+
+[volumes.redis-data]
+driver = "local"
+
+[networks.default]
+driver = "default"
