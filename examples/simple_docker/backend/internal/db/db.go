@@ -24,6 +24,7 @@ func NewClient(ctx context.Context, cfg *config.Config) (*Client, error) {
 	poolConfig.MinConns = cfg.DB.MinConns
 	poolConfig.MaxConnLifetime = cfg.DB.MaxConnLifetime
 	poolConfig.MaxConnIdleTime = cfg.DB.MaxConnIdleTime
+	poolConfig.ConnConfig.ConnectTimeout = time.Second
 
 	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {

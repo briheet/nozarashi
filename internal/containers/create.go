@@ -10,6 +10,7 @@ import (
 
 	"github.com/briheet/nozarashi/internal/config"
 	"github.com/briheet/nozarashi/internal/specs"
+	"golang.org/x/sync/errgroup"
 )
 
 // This wraps over apple's container cli and helps us create project resources.
@@ -119,14 +120,21 @@ func createContainerCommand(ctx context.Context, args ...string) (*exec.Cmd, err
 
 // Helps in creating Resources
 func createResources(ctx context.Context, graph *specs.Graph) error {
+	// Create independent resource kinds concurrently.
+	group, groupCtx := errgroup.WithContext(ctx)
+
 	// Create volumes defined in the graph
-	if err := createVolumes(ctx, graph); err != nil {
-		return err
-	}
+	group.Go(func() error {
+		return createVolumes(groupCtx, graph)
+	})
 
 	// Create networks defined in the graph
-	if err := createNetworks(ctx, graph); err != nil {
-		return err
+	group.Go(func() error {
+		return createNetworks(groupCtx, graph)
+	})
+
+	if err := group.Wait(); err != nil {
+		return fmt.Errorf("create resources: %w", err)
 	}
 
 	return nil

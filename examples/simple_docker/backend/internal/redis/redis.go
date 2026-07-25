@@ -17,9 +17,11 @@ type Client struct {
 // NewClient connects to Redis after its service becomes ready.
 func NewClient(ctx context.Context, cfg *config.Config) (*Client, error) {
 	client := redisclient.NewClient(&redisclient.Options{
-		Addr:     cfg.Redis.Address,
-		Password: cfg.Redis.Password,
-		DB:       cfg.Redis.Database,
+		Addr:        cfg.Redis.Address,
+		Password:    cfg.Redis.Password,
+		DB:          cfg.Redis.Database,
+		DialTimeout: time.Second,
+		MaxRetries:  -1,
 	})
 
 	// Dependency ordering starts Redis first, but it may still be initializing.

@@ -1,0 +1,49 @@
+name: simple-docker
+
+services:
+  postgres:
+    image: docker.io/library/postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nozarashi
+      POSTGRES_USER: nozarashi
+      POSTGRES_PASSWORD: nozarashi
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: docker.io/library/redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+
+  backend:
+    build:
+      context: ./backend
+    restart: on-failure
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      PORT: "8080"
+      CORS_ALLOWED_ORIGIN: http://localhost:3000
+      READ_HEADER_TIMEOUT: "5"
+      READ_TIMEOUT: "15"
+      WRITE_TIMEOUT: "15"
+      IDLE_TIMEOUT: "60"
+      DATABASEURL: postgres://nozarashi:nozarashi@postgres:5432/nozarashi?sslmode=disable
+      DB_MAX_CONNS: "10"
+      DB_MIN_CONNS: "1"
+      DB_MAX_CONN_LIFETIME: 30m
+      DB_MAX_CONN_IDLE_TIME: 5m
+      REDIS_ADDRESS: redis:6379
+      REDIS_PASSWORD: ""
+      REDIS_DATABASE: "0"
+    ports:
+      - "18080:8080"
+
+volumes:
+  postgres-data:
+  redis-data:

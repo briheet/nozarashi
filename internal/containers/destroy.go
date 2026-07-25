@@ -2,8 +2,10 @@ package containers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/briheet/nozarashi/internal/config"
+	"golang.org/x/sync/errgroup"
 )
 
 // This function destroys containers, networks, volumes and images for a project.
@@ -40,19 +42,26 @@ func DestroyContainers(ctx context.Context, opts ContainerOptions) error {
 		return err
 	}
 
-	// Delete project runtime networks
-	if err := removeNetworks(ctx, graph); err != nil {
-		return err
-	}
+	// Delete independent project resources concurrently.
+	group, groupCtx := errgroup.WithContext(ctx)
 
-	// Delete project runtime volumes
-	if err := removeVolumes(ctx, graph); err != nil {
-		return err
-	}
+	// Delete project runtime networks.
+	group.Go(func() error {
+		return removeNetworks(groupCtx, graph)
+	})
 
-	// Delete local and registry-backed service images last.
-	if err := destroyImages(ctx, graph); err != nil {
-		return err
+	// Delete project runtime volumes.
+	group.Go(func() error {
+		return removeVolumes(groupCtx, graph)
+	})
+
+	// Delete local and registry-backed service images.
+	group.Go(func() error {
+		return destroyImages(groupCtx, graph)
+	})
+
+	if err := group.Wait(); err != nil {
+		return fmt.Errorf("destroy project resources: %w", err)
 	}
 
 	return nil

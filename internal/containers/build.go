@@ -12,6 +12,7 @@ import (
 	"github.com/briheet/nozarashi/internal/config"
 	"github.com/briheet/nozarashi/internal/nix"
 	"github.com/briheet/nozarashi/internal/specs"
+	"golang.org/x/sync/errgroup"
 )
 
 // This wraps over apple's container cli and helps us build images, deleting containers if any
@@ -172,22 +173,27 @@ func serviceImageReference(serviceNode *specs.ServiceNode) string {
 
 // Builds or pulls all service images.
 func buildServiceImages(ctx context.Context, graph *specs.Graph) error {
-	// Build or pull every service image in dependency order.
+	// Build independent service images concurrently without exhausting the host.
+	group, groupCtx := errgroup.WithContext(ctx)
+	group.SetLimit(3)
+
 	for _, serviceNode := range graph.Nodes {
-		switch serviceNode.Spec.Type {
-		case specs.ServiceTypeInput:
-			if err := buildNixServiceImage(ctx, graph, serviceNode); err != nil {
-				return err
+		group.Go(func() error {
+			switch serviceNode.Spec.Type {
+			case specs.ServiceTypeInput:
+				return buildNixServiceImage(groupCtx, graph, serviceNode)
+			case specs.ServiceTypeOCI:
+				return pullOCIServiceImage(groupCtx, serviceNode)
+			case specs.ServiceTypePath:
+				return buildContainerfileServiceImage(groupCtx, serviceNode)
 			}
-		case specs.ServiceTypeOCI:
-			if err := pullOCIServiceImage(ctx, serviceNode); err != nil {
-				return err
-			}
-		case specs.ServiceTypePath:
-			if err := buildContainerfileServiceImage(ctx, serviceNode); err != nil {
-				return err
-			}
-		}
+
+			return nil
+		})
+	}
+
+	if err := group.Wait(); err != nil {
+		return fmt.Errorf("build service images: %w", err)
 	}
 
 	return nil
