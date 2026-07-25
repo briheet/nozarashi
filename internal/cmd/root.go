@@ -57,6 +57,9 @@ func Execute(ctx context.Context) int {
 	// This is the destroy command for deleting all project runtime objects
 	rootCmd.AddCommand(DestroyCmd())
 
+	// This is the restart command for restarting service containers
+	rootCmd.AddCommand(RestartCmd())
+
 	// Execute and return if any error
 	if err := rootCmd.Execute(); err != nil {
 		log.Printf("Error: %v", err)
