@@ -165,3 +165,12 @@ func TestContainerNetworkDeleteArgs(t *testing.T) {
 		t.Fatalf("unexpected network delete arguments:\ngot:  %q\nwant: %q", got, want)
 	}
 }
+
+func TestContainerInspectArgs(t *testing.T) {
+	got := ContainerInspectArgs("example-api-1", "example-worker-1")
+	want := []string{"inspect", "example-api-1", "example-worker-1"}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("unexpected container inspect arguments:\ngot:  %q\nwant: %q", got, want)
+	}
+}

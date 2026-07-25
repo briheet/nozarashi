@@ -203,12 +203,13 @@ func ContainerRunArgs(
 	return args
 }
 
-// ContainerInspectArgs builds arguments for inspecting a container.
-func ContainerInspectArgs(name string) []string {
-	return []string{
+// ContainerInspectArgs builds arguments for inspecting containers.
+func ContainerInspectArgs(names ...string) []string {
+	args := []string{
 		"inspect",
-		name,
 	}
+
+	return append(args, names...)
 }
 
 // ContainerStartArgs builds arguments for starting a container.

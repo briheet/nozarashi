@@ -60,6 +60,9 @@ func Execute(ctx context.Context) int {
 	// This is the restart command for restarting service containers
 	rootCmd.AddCommand(RestartCmd())
 
+	// This is the inspect command for displaying service container details
+	rootCmd.AddCommand(InspectCmd())
+
 	// Execute and return if any error
 	if err := rootCmd.Execute(); err != nil {
 		log.Printf("Error: %v", err)
