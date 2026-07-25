@@ -123,3 +123,27 @@ func TestContainerListAllArgs(t *testing.T) {
 		t.Fatalf("unexpected container list all arguments:\ngot:  %q\nwant: %q", got, want)
 	}
 }
+
+func TestContainerExecArgs(t *testing.T) {
+	got := ContainerExecArgs(
+		"example-api-1",
+		ContainerOptions{
+			Args:        []string{"api", "sh", "-c", "echo ready"},
+			Interactive: true,
+			TTY:         true,
+		},
+	)
+	want := []string{
+		"exec",
+		"--interactive",
+		"--tty",
+		"example-api-1",
+		"sh",
+		"-c",
+		"echo ready",
+	}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("unexpected container exec arguments:\ngot:  %q\nwant: %q", got, want)
+	}
+}

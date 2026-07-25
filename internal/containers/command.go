@@ -242,3 +242,21 @@ func ContainerListArgs(all bool) []string {
 
 	return append(args, "--format", "json")
 }
+
+// ContainerExecArgs builds arguments for executing a command in a container.
+func ContainerExecArgs(name string, opts ContainerOptions) []string {
+	args := []string{
+		"exec",
+	}
+
+	if opts.Interactive {
+		args = append(args, "--interactive")
+	}
+
+	if opts.TTY {
+		args = append(args, "--tty")
+	}
+
+	args = append(args, name)
+	return append(args, opts.Args[1:]...)
+}

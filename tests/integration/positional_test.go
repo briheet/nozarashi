@@ -66,6 +66,14 @@ func TestPositionalServiceLifecycle(t *testing.T) {
 		t.Fatalf("positional Redis container is not running:\n%s", output)
 	}
 
+	// Execute redis-cli inside the selected Redis service.
+	execOptions := options
+	execOptions.Args = []string{"redis", "redis-cli", "ping"}
+	execOptions.Replica = 1
+	if err := containers.ExecContainers(ctx, execOptions); err != nil {
+		t.Fatalf("exec positional Redis service: %v", err)
+	}
+
 	// List only the selected project service.
 	if err := containers.PsContainers(ctx, options); err != nil {
 		t.Fatalf("ps positional Redis service: %v", err)

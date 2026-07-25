@@ -50,6 +50,9 @@ func Execute(ctx context.Context) int {
 	// This is the ps command for listing running containers
 	rootCmd.AddCommand(PsCmd())
 
+	// This is the exec command for running commands in service containers
+	rootCmd.AddCommand(ExecCmd())
+
 	// Execute and return if any error
 	if err := rootCmd.Execute(); err != nil {
 		log.Printf("Error: %v", err)
