@@ -97,7 +97,16 @@ func (t teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		t.m.Err = msg.err
 		if snapshot, ok := t.m.RingBuffer.Latest(); ok {
-			t.m.Cursor = min(t.m.Cursor, max(len(snapshot.Containers.Items)-1, 0))
+			switch t.m.ActivePanel {
+			case 1, 2, 3:
+				t.m.Cursor = min(t.m.Cursor, max(len(snapshot.Containers.Items)-1, 0))
+			case 4:
+				t.m.ResourceCursor = min(t.m.ResourceCursor, max(len(snapshot.Images)-1, 0))
+			case 5:
+				t.m.ResourceCursor = min(t.m.ResourceCursor, max(len(snapshot.Volumes)-1, 0))
+			case 6:
+				t.m.ResourceCursor = min(t.m.ResourceCursor, max(len(snapshot.Networks)-1, 0))
+			}
 		}
 		t.scrollLogs(0)
 		return t, t.waitForUpdate()
@@ -128,22 +137,29 @@ func (t teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				t.m.ActivePanel = 1
 			}
 		case tea.KeyUp:
-			if t.m.ActivePanel == 2 {
-				t.scrollLogs(1)
-			} else if t.m.ActivePanel == 1 {
+			switch t.m.ActivePanel {
+			case 1:
 				t.m.Cursor = max(t.m.Cursor-1, 0)
 				t.m.LogOffset = 0
+			case 2:
+				t.scrollLogs(1)
+			case 4, 5, 6:
+				t.m.ResourceCursor = max(t.m.ResourceCursor-1, 0)
 			}
 		case tea.KeyDown:
-			if t.m.ActivePanel == 2 {
-				t.scrollLogs(-1)
-			} else if t.m.ActivePanel == 1 {
-				snapshot, ok := t.m.RingBuffer.Latest()
-				if !ok {
-					break
-				}
+			snapshot, _ := t.m.RingBuffer.Latest()
+			switch t.m.ActivePanel {
+			case 1:
 				t.m.Cursor = min(t.m.Cursor+1, max(len(snapshot.Containers.Items)-1, 0))
 				t.m.LogOffset = 0
+			case 2:
+				t.scrollLogs(-1)
+			case 4:
+				t.m.ResourceCursor = min(t.m.ResourceCursor+1, max(len(snapshot.Images)-1, 0))
+			case 5:
+				t.m.ResourceCursor = min(t.m.ResourceCursor+1, max(len(snapshot.Volumes)-1, 0))
+			case 6:
+				t.m.ResourceCursor = min(t.m.ResourceCursor+1, max(len(snapshot.Networks)-1, 0))
 			}
 		case tea.KeyPgUp:
 			if t.m.ActivePanel == 2 {
@@ -170,18 +186,29 @@ func (t teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case 'q':
 				return t, tea.Quit
 			case 'k':
-				if t.m.ActivePanel == 1 {
+				switch t.m.ActivePanel {
+				case 1:
 					t.m.Cursor = max(t.m.Cursor-1, 0)
 					t.m.LogOffset = 0
-				} else if t.m.ActivePanel == 2 {
+				case 2:
 					t.scrollLogs(1)
+				case 4, 5, 6:
+					t.m.ResourceCursor = max(t.m.ResourceCursor-1, 0)
 				}
 			case 'j':
-				if t.m.ActivePanel == 2 {
-					t.scrollLogs(-1)
-				} else if snapshot, ok := t.m.RingBuffer.Latest(); ok && t.m.ActivePanel == 1 {
+				snapshot, _ := t.m.RingBuffer.Latest()
+				switch t.m.ActivePanel {
+				case 1:
 					t.m.Cursor = min(t.m.Cursor+1, max(len(snapshot.Containers.Items)-1, 0))
 					t.m.LogOffset = 0
+				case 2:
+					t.scrollLogs(-1)
+				case 4:
+					t.m.ResourceCursor = min(t.m.ResourceCursor+1, max(len(snapshot.Images)-1, 0))
+				case 5:
+					t.m.ResourceCursor = min(t.m.ResourceCursor+1, max(len(snapshot.Volumes)-1, 0))
+				case 6:
+					t.m.ResourceCursor = min(t.m.ResourceCursor+1, max(len(snapshot.Networks)-1, 0))
 				}
 			case 'u':
 				if t.m.ActivePanel == 2 {
@@ -197,6 +224,15 @@ func (t teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				t.m.ActivePanel = 2
 			case '3':
 				t.m.ActivePanel = 3
+			case '4':
+				t.m.ActivePanel = 4
+				t.m.ResourceCursor = 0
+			case '5':
+				t.m.ActivePanel = 5
+				t.m.ResourceCursor = 0
+			case '6':
+				t.m.ActivePanel = 6
+				t.m.ResourceCursor = 0
 			}
 		}
 	}
@@ -226,8 +262,7 @@ func (t teaModel) scrollLogs(lines int) {
 func (t teaModel) View() tea.View {
 	renderer := newFrameRenderer(t.m)
 	lines := renderer.renderHeader()
-	lines = append(lines, renderer.renderContainerPanel()...)
-	lines = append(lines, renderer.renderDetailPanel()...)
+	lines = append(lines, renderer.renderPanel()...)
 	lines = append(lines, renderer.renderFooter()...)
 
 	content := styles.frame.
@@ -265,8 +300,11 @@ func (r frameRenderer) renderHeader() []string {
 			styles.muted.Render(runtimeText),
 		styles.muted.Render(r.fit(" Hostname: " + r.m.Hostname)),
 		styles.muted.Render(r.fit(fmt.Sprintf(
-			" Containers: %d    Poll: %s",
+			" Containers: %d    Images: %d    Volumes: %d    Networks: %d    Poll: %s",
 			len(r.snapshot.Containers.Items),
+			len(r.snapshot.Images),
+			len(r.snapshot.Volumes),
+			len(r.snapshot.Networks),
 			pollInterval,
 		))),
 	}
@@ -324,6 +362,117 @@ func (r frameRenderer) renderContainerPanel() []string {
 		lines = append(lines, r.fit(""))
 	}
 
+	return lines
+}
+
+// renderPanel routes all six panel shortcuts.
+func (r frameRenderer) renderPanel() []string {
+	switch r.m.ActivePanel {
+	case 1, 2, 3:
+		return append(r.renderContainerPanel(), r.renderDetailPanel()...)
+	case 4:
+		rows := make([][]string, 0, len(r.snapshot.Images))
+		for _, image := range r.snapshot.Images {
+			id := strings.TrimPrefix(image.ID, "sha256:")
+			if len(id) > 12 {
+				id = id[:12]
+			}
+			var size uint64
+			platforms := make([]string, 0, len(image.Variants))
+			for _, variant := range image.Variants {
+				if variant.Size > 0 {
+					size += uint64(variant.Size)
+				}
+				platforms = append(platforms, variant.Platform.OS+"/"+variant.Platform.Architecture)
+			}
+			rows = append(rows, []string{
+				image.Configuration.Name,
+				id,
+				formatBytes(size),
+				strings.Join(platforms, ","),
+				image.Configuration.CreationDate,
+			})
+		}
+		return r.renderResourceTable(
+			"4 IMAGES",
+			r.m.ResourceCursor,
+			[]string{"REFERENCE", "IMAGE ID", "SIZE", "PLATFORM", "CREATED"},
+			rows,
+		)
+	case 5:
+		rows := make([][]string, 0, len(r.snapshot.Volumes))
+		for _, volume := range r.snapshot.Volumes {
+			rows = append(rows, []string{
+				volume.ID,
+				volume.Configuration.Driver,
+				volume.Configuration.Format,
+				formatBytes(volume.Configuration.SizeInBytes),
+				volume.Configuration.CreationDate,
+			})
+		}
+		return r.renderResourceTable(
+			"5 VOLUMES",
+			r.m.ResourceCursor,
+			[]string{"VOLUME", "DRIVER", "FORMAT", "CAPACITY", "CREATED"},
+			rows,
+		)
+	case 6:
+		rows := make([][]string, 0, len(r.snapshot.Networks))
+		for _, network := range r.snapshot.Networks {
+			rows = append(rows, []string{
+				network.ID,
+				network.Configuration.Mode,
+				network.Status.IPv4Subnet,
+				network.Status.IPv4Gateway,
+				network.Status.IPv6Subnet,
+			})
+		}
+		return r.renderResourceTable(
+			"6 NETWORKS",
+			r.m.ResourceCursor,
+			[]string{"NETWORK", "MODE", "IPv4 SUBNET", "GATEWAY", "IPv6 SUBNET"},
+			rows,
+		)
+	default:
+		return nil
+	}
+}
+
+func (r frameRenderer) renderResourceTable(
+	title string,
+	cursor int,
+	header []string,
+	rows [][]string,
+) []string {
+	table := &strings.Builder{}
+	writer := tabwriter.NewWriter(table, 0, 4, 2, ' ', 0)
+	fmt.Fprintln(writer, "  "+strings.Join(header, "\t"))
+	for _, row := range rows {
+		fmt.Fprintln(writer, "  "+strings.Join(row, "\t"))
+	}
+	writer.Flush()
+	tableRows := strings.Split(strings.TrimSuffix(table.String(), "\n"), "\n")
+
+	visibleRows := r.listRows + r.detailRows + 1
+	cursor = min(cursor, max(len(rows)-1, 0))
+	start := max(cursor-visibleRows+1, 0)
+	end := min(start+visibleRows, len(rows))
+	lines := []string{
+		r.title(title, true),
+		styles.header.Render(r.fit(tableRows[0])),
+	}
+
+	for index := start; index < end; index++ {
+		row := r.fit(tableRows[index+1])
+		if index == cursor {
+			row = styles.selected.Render(row)
+		}
+		lines = append(lines, row)
+	}
+
+	for len(lines) < visibleRows+2 {
+		lines = append(lines, r.fit(""))
+	}
 	return lines
 }
 
@@ -497,6 +646,9 @@ func (r frameRenderer) renderFooter() []string {
 	footer := panelKey(1) + " Containers  " +
 		panelKey(2) + " Logs  " +
 		panelKey(3) + " Config  " +
+		panelKey(4) + " Images  " +
+		panelKey(5) + " Volumes  " +
+		panelKey(6) + " Networks  " +
 		styles.accent.Render("Tab") + " Switch  " +
 		styles.accent.Render("↑/↓") + " Navigate  " +
 		styles.accent.Render("q") + " Quit  " +

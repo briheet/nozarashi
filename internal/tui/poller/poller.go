@@ -27,6 +27,21 @@ type statsResult struct {
 	err   error
 }
 
+type imageResult struct {
+	images []specs.Image
+	err    error
+}
+
+type volumeResult struct {
+	volumes []specs.Volume
+	err     error
+}
+
+type networkResult struct {
+	networks []specs.Network
+	err      error
+}
+
 func NewPoller(
 	ringBuffer *ringbuffer.RingBuffer[model.Snapshot],
 	updates chan<- error,
@@ -42,49 +57,98 @@ func NewPoller(
 func (p *poller) Poll(ctx context.Context) {
 	containerResults := make(chan containerResult, 1)
 	statsResults := make(chan statsResult, 1)
+	imageResults := make(chan imageResult, 1)
+	volumeResults := make(chan volumeResult, 1)
+	networkResults := make(chan networkResult, 1)
 	group, ctx := errgroup.WithContext(ctx)
 
-	// Container data and stats have different sampling times, so poll them independently.
+	// Each data source polls independently; snapshots are merged below.
 	group.Go(func() error {
 		return p.pollContainers(ctx, containerResults)
 	})
 	group.Go(func() error {
 		return p.pollStats(ctx, statsResults)
 	})
+	group.Go(func() error {
+		return p.pollImages(ctx, imageResults)
+	})
+	group.Go(func() error {
+		return p.pollVolumes(ctx, volumeResults)
+	})
+	group.Go(func() error {
+		return p.pollNetworks(ctx, networkResults)
+	})
 
 	defer close(p.updates)
 	defer group.Wait()
 
-	latestStats := make(map[string]specs.ContainerStats)
+	snapshot := model.Snapshot{
+		Stats: make(map[string]specs.ContainerStats),
+	}
+	var containerErr error
 	var statsErr error
+	var imageErr error
+	var volumeErr error
+	var networkErr error
 
-	// Merge both streams here so only one goroutine writes snapshots to the ring buffer.
 	for {
 		select {
 		case result := <-statsResults:
 			statsErr = result.err
 			if result.err == nil {
-				latestStats = result.stats
+				snapshot.Stats = result.stats
+				p.ringBuffer.Push(snapshot)
+			}
+		case result := <-imageResults:
+			imageErr = result.err
+			if result.err == nil {
+				snapshot.Images = result.images
+				p.ringBuffer.Push(snapshot)
+			}
+		case result := <-volumeResults:
+			volumeErr = result.err
+			if result.err == nil {
+				snapshot.Volumes = result.volumes
+				p.ringBuffer.Push(snapshot)
+			}
+		case result := <-networkResults:
+			networkErr = result.err
+			if result.err == nil {
+				snapshot.Networks = result.networks
+				p.ringBuffer.Push(snapshot)
 			}
 		case result := <-containerResults:
-			if result.err == nil {
-				result.snapshot.Stats = latestStats
-				p.ringBuffer.Push(result.snapshot)
-			}
-
-			if result.err == nil {
-				result.err = statsErr
-			}
-
-			select {
-			case p.updates <- result.err:
-			case <-ctx.Done():
-				return
+			containerErr = result.err
+			if containerErr == nil {
+				snapshot.Containers = result.snapshot.Containers
+				snapshot.Logs = result.snapshot.Logs
+				p.ringBuffer.Push(snapshot)
 			}
 		case <-ctx.Done():
 			return
 		}
+
+		select {
+		case p.updates <- firstError(
+			containerErr,
+			statsErr,
+			imageErr,
+			volumeErr,
+			networkErr,
+		):
+		case <-ctx.Done():
+			return
+		}
 	}
+}
+
+func firstError(errs ...error) error {
+	for _, err := range errs {
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (p *poller) pollContainers(ctx context.Context, results chan<- containerResult) error {
@@ -125,7 +189,73 @@ func (p *poller) pollContainers(ctx context.Context, results chan<- containerRes
 	}
 }
 
+func (p *poller) pollImages(ctx context.Context, results chan<- imageResult) error {
+	ticker := time.NewTicker(p.pollingTime)
+	defer ticker.Stop()
+
+	for {
+		images, err := containers.GetImages(ctx)
+
+		select {
+		case results <- imageResult{images: images, err: err}:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+
+		select {
+		case <-ticker.C:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+}
+
+func (p *poller) pollVolumes(ctx context.Context, results chan<- volumeResult) error {
+	ticker := time.NewTicker(p.pollingTime)
+	defer ticker.Stop()
+
+	for {
+		volumes, err := containers.GetVolumes(ctx)
+
+		select {
+		case results <- volumeResult{volumes: volumes, err: err}:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+
+		select {
+		case <-ticker.C:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+}
+
+func (p *poller) pollNetworks(ctx context.Context, results chan<- networkResult) error {
+	ticker := time.NewTicker(p.pollingTime)
+	defer ticker.Stop()
+
+	for {
+		networks, err := containers.GetNetworks(ctx)
+
+		select {
+		case results <- networkResult{networks: networks, err: err}:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+
+		select {
+		case <-ticker.C:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+}
+
 func (p *poller) pollStats(ctx context.Context, results chan<- statsResult) error {
+	ticker := time.NewTicker(p.pollingTime)
+	defer ticker.Stop()
+
 	previousStats := make(map[string]specs.ContainerStats)
 	var previousSample time.Time
 
@@ -159,12 +289,10 @@ func (p *poller) pollStats(ctx context.Context, results chan<- statsResult) erro
 			return ctx.Err()
 		}
 
-		if err != nil {
-			select {
-			case <-time.After(p.pollingTime):
-			case <-ctx.Done():
-				return ctx.Err()
-			}
+		select {
+		case <-ticker.C:
+		case <-ctx.Done():
+			return ctx.Err()
 		}
 	}
 }

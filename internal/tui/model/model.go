@@ -13,9 +13,10 @@ type Model struct {
 	RingBuffer *ringbuffer.RingBuffer[Snapshot]
 	Updates    <-chan error
 
-	Cursor      int
-	ActivePanel int
-	LogOffset   int
+	Cursor         int
+	ResourceCursor int
+	ActivePanel    int
+	LogOffset      int
 
 	// Window specifics
 	Width  int
@@ -28,6 +29,9 @@ type Model struct {
 // Snapshot type buffer
 type Snapshot struct {
 	Containers specs.Containers
+	Images     []specs.Image
+	Volumes    []specs.Volume
+	Networks   []specs.Network
 	Logs       map[string][]string
 	Stats      map[string]specs.ContainerStats
 }

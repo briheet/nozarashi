@@ -33,6 +33,30 @@ var ContainerStatsArgs = []string{
 	"json",
 }
 
+// Args for listing images as JSON
+var ContainerImageListArgs = []string{
+	"image",
+	"list",
+	"--format",
+	"json",
+}
+
+// Args for listing volumes as JSON
+var ContainerVolumeListArgs = []string{
+	"volume",
+	"list",
+	"--format",
+	"json",
+}
+
+// Args for listing networks as JSON
+var ContainerNetworkListArgs = []string{
+	"network",
+	"list",
+	"--format",
+	"json",
+}
+
 // Args for system stop
 var ContainerSystemStopArgs = []string{
 	"system",

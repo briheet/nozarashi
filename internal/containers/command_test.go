@@ -99,6 +99,15 @@ func TestContainerImageDeleteArgs(t *testing.T) {
 	}
 }
 
+func TestContainerImageListArgs(t *testing.T) {
+	got := ContainerImageListArgs
+	want := []string{"image", "list", "--format", "json"}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("unexpected image list arguments:\ngot:  %q\nwant: %q", got, want)
+	}
+}
+
 func TestContainerLogsArgs(t *testing.T) {
 	got := ContainerLogsArgs("example-api-1", 25)
 	want := []string{"logs", "-n", "25", "example-api-1"}
@@ -168,12 +177,30 @@ func TestContainerVolumeDeleteArgs(t *testing.T) {
 	}
 }
 
+func TestContainerVolumeListArgs(t *testing.T) {
+	got := ContainerVolumeListArgs
+	want := []string{"volume", "list", "--format", "json"}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("unexpected volume list arguments:\ngot:  %q\nwant: %q", got, want)
+	}
+}
+
 func TestContainerNetworkDeleteArgs(t *testing.T) {
 	got := ContainerNetworkDeleteArgs("example-default")
 	want := []string{"network", "delete", "example-default"}
 
 	if !slices.Equal(got, want) {
 		t.Fatalf("unexpected network delete arguments:\ngot:  %q\nwant: %q", got, want)
+	}
+}
+
+func TestContainerNetworkListArgs(t *testing.T) {
+	got := ContainerNetworkListArgs
+	want := []string{"network", "list", "--format", "json"}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("unexpected network list arguments:\ngot:  %q\nwant: %q", got, want)
 	}
 }
 

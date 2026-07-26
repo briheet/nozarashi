@@ -47,6 +47,7 @@ func Run(ctx context.Context, opts containers.ContainerOptions) error {
 	program := tea.NewProgram(
 		teaModel{m: baseModel},
 		tea.WithContext(ctx),
+		tea.WithFPS(120),
 	)
 
 	if _, err := program.Run(); err != nil {

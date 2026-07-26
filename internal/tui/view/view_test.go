@@ -48,6 +48,48 @@ func TestViewLayout(t *testing.T) {
 				NumProcesses:     7,
 			},
 		},
+		Images: []specs.Image{
+			{
+				ID: "abcdef1234567890",
+				Configuration: specs.ImageConfiguration{
+					Name:         "example/api:latest",
+					CreationDate: "2026-07-26T08:47:13Z",
+				},
+				Variants: []specs.ImageVariant{
+					{
+						Platform: specs.ImagePlatform{
+							Architecture: "arm64",
+							OS:           "linux",
+						},
+						Size: 25 * 1024 * 1024,
+					},
+				},
+			},
+		},
+		Volumes: []specs.Volume{
+			{
+				ID: "example-data",
+				Configuration: specs.VolumeConfiguration{
+					CreationDate: "2026-07-26T08:47:13Z",
+					Driver:       "local",
+					Format:       "ext4",
+					SizeInBytes:  512 * 1024 * 1024,
+				},
+			},
+		},
+		Networks: []specs.Network{
+			{
+				ID: "example-default",
+				Configuration: specs.NetworkConfiguration{
+					Mode: "nat",
+				},
+				Status: specs.NetworkStatus{
+					IPv4Gateway: "192.168.68.1",
+					IPv4Subnet:  "192.168.68.0/24",
+					IPv6Subnet:  "fd80:1f45:6fad:5fe7::/64",
+				},
+			},
+		},
 	})
 
 	baseModel := model.InitialModel(buffer, make(chan error))
@@ -118,5 +160,54 @@ func TestViewLayout(t *testing.T) {
 	})
 	if updated.(teaModel).m.LogOffset == 0 {
 		t.Fatal("expected mouse wheel to scroll logs")
+	}
+
+	resourceViews := []struct {
+		key      rune
+		title    string
+		expected []string
+	}{
+		{'4', "4 IMAGES", []string{
+			"PLATFORM",
+			"CREATED",
+			"example/api:latest",
+			"abcdef123456",
+			"linux/arm64",
+			"25.00 MiB",
+			"2026-07-26T08:47:13Z",
+		}},
+		{'5', "5 VOLUMES", []string{
+			"FORMAT",
+			"CAPACITY",
+			"CREATED",
+			"example-data",
+			"local",
+			"ext4",
+			"512.00 MiB",
+			"2026-07-26T08:47:13Z",
+		}},
+		{'6', "6 NETWORKS", []string{
+			"MODE",
+			"IPv4 SUBNET",
+			"GATEWAY",
+			"IPv6 SUBNET",
+			"example-default",
+			"nat",
+			"192.168.68.0/24",
+			"192.168.68.1",
+			"fd80:1f45:6fad:5fe7::/64",
+		}},
+	}
+	for _, test := range resourceViews {
+		updated, _ = updated.(teaModel).Update(tea.KeyPressMsg{Code: test.key})
+		content := updated.(teaModel).View().Content
+		if !strings.Contains(content, test.title) {
+			t.Fatalf("expected %s panel", test.title)
+		}
+		for _, value := range test.expected {
+			if !strings.Contains(content, value) {
+				t.Fatalf("expected %q in %s panel", value, test.title)
+			}
+		}
 	}
 }
