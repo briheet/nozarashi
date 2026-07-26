@@ -2,6 +2,7 @@ package containers
 
 import (
 	"context"
+	"io"
 
 	"github.com/briheet/nozarashi/internal/config"
 )
@@ -9,7 +10,7 @@ import (
 // This wraps over apple's container cli and helps us stopping running containers
 func DownContainers(ctx context.Context, opts ContainerOptions) error {
 	// First check this containers system is running
-	if err := StatusSystemContainers(ctx); err != nil {
+	if err := StatusSystemContainers(ctx, io.Discard); err != nil {
 		return err
 	}
 

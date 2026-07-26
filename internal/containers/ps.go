@@ -1,22 +1,25 @@
 package containers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
+	"io"
 	"os/exec"
 	"slices"
+	"strings"
 
 	"github.com/briheet/nozarashi/internal/config"
 	"github.com/briheet/nozarashi/internal/render"
 	"github.com/briheet/nozarashi/internal/specs"
+	"github.com/charmbracelet/x/ansi"
 )
 
 // This function wraps over apple's container cli and lists containers.
 func PsContainers(ctx context.Context, opts ContainerOptions) error {
 	// First check this containers system is running.
-	if err := StatusSystemContainers(ctx); err != nil {
+	if err := StatusSystemContainers(ctx, io.Discard); err != nil {
 		return err
 	}
 
@@ -38,7 +41,7 @@ func PsContainers(ctx context.Context, opts ContainerOptions) error {
 	}
 
 	// Get containers
-	containers, err := getContainers(ctx, opts.All)
+	containers, err := GetContainers(ctx, opts.All)
 	if err != nil {
 		return err
 	}
@@ -54,17 +57,24 @@ func PsContainers(ctx context.Context, opts ContainerOptions) error {
 	return nil
 }
 
-// Gets running or all containers from Apple Container.
-func getContainers(ctx context.Context, all bool) (*specs.Containers, error) {
+// GetContainers gets running or all containers from Apple Container.
+func GetContainers(ctx context.Context, all bool) (*specs.Containers, error) {
 	listCmd := exec.CommandContext(
 		ctx,
 		ContainerCliName,
 		ContainerListArgs(all)...,
 	)
-	listCmd.Stderr = os.Stderr
+	// Capture stderr because Apple Container writes cursor control codes there.
+	stderr := &bytes.Buffer{}
+	listCmd.Stderr = stderr
 
 	output, err := listCmd.Output()
 	if err != nil {
+		// Remove terminal control codes before returning a readable command error.
+		message := strings.TrimSpace(ansi.Strip(stderr.String()))
+		if message != "" {
+			return nil, fmt.Errorf("list containers: %s: %w", message, err)
+		}
 		return nil, fmt.Errorf("list containers: %w", err)
 	}
 

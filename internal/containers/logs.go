@@ -3,7 +3,7 @@ package containers
 import (
 	"context"
 	"fmt"
-	"os"
+	"io"
 	"os/exec"
 	"strings"
 
@@ -15,7 +15,7 @@ import (
 // This function wraps over apple's container cli and helps in getting logs
 func LogsContainers(ctx context.Context, opts ContainerOptions) error {
 	// First check this containers system is running
-	if err := StatusSystemContainers(ctx); err != nil {
+	if err := StatusSystemContainers(ctx, io.Discard); err != nil {
 		return err
 	}
 
@@ -71,21 +71,9 @@ func getContainerLogs(ctx context.Context, graph *specs.Graph, number int) (*spe
 				replica,
 			)
 
-			logsCmd := exec.CommandContext(
-				ctx,
-				ContainerCliName,
-				ContainerLogsArgs(containerName, number)...,
-			)
-			logsCmd.Stderr = os.Stderr
-
-			output, err := logsCmd.Output()
+			lines, err := GetContainerLogLines(ctx, containerName, number)
 			if err != nil {
-				return nil, fmt.Errorf("get logs for container %q: %w", containerName, err)
-			}
-
-			lines := make([]string, 0)
-			if logOutput := strings.TrimSuffix(string(output), "\n"); logOutput != "" {
-				lines = strings.Split(logOutput, "\n")
+				return nil, err
 			}
 
 			logs.Containers = append(logs.Containers, specs.ContainerLogs{
@@ -96,4 +84,29 @@ func getContainerLogs(ctx context.Context, graph *specs.Graph, number int) (*spe
 	}
 
 	return logs, nil
+}
+
+// GetContainerLogLines gets bounded logs from one container.
+func GetContainerLogLines(ctx context.Context, name string, number int) ([]string, error) {
+	logsCmd := exec.CommandContext(
+		ctx,
+		ContainerCliName,
+		ContainerLogsArgs(name, number)...,
+	)
+
+	output, err := logsCmd.CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf(
+			"get logs for container %q: %s: %w",
+			name,
+			strings.TrimSpace(string(output)),
+			err,
+		)
+	}
+
+	if logOutput := strings.TrimSuffix(string(output), "\n"); logOutput != "" {
+		return strings.Split(logOutput, "\n"), nil
+	}
+
+	return nil, nil
 }

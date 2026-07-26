@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 
@@ -15,7 +16,7 @@ import (
 // This function inspects containers for selected project services.
 func InspectContainers(ctx context.Context, opts ContainerOptions) error {
 	// First check this containers system is running.
-	if err := StatusSystemContainers(ctx); err != nil {
+	if err := StatusSystemContainers(ctx, io.Discard); err != nil {
 		return err
 	}
 
