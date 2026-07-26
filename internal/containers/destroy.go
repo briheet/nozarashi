@@ -3,6 +3,7 @@ package containers
 import (
 	"context"
 	"fmt"
+	"io"
 
 	"github.com/briheet/nozarashi/internal/config"
 	"golang.org/x/sync/errgroup"
@@ -11,7 +12,7 @@ import (
 // This function destroys containers, networks, volumes and images for a project.
 func DestroyContainers(ctx context.Context, opts ContainerOptions) error {
 	// First check this containers system is running.
-	if err := StatusSystemContainers(ctx); err != nil {
+	if err := StatusSystemContainers(ctx, io.Discard); err != nil {
 		return err
 	}
 

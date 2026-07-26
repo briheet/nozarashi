@@ -8,6 +8,8 @@ environments from OCI images, Dockerfiles, Containerfiles and Nix inputs.
 Define services and resources in `nozarashi.toml`, then manage their images,
 containers, networks and volumes as one project.
 
+Nozarashi comes also bundled with a `TUI` for apple containers logs viewing.
+
 ## Installation
 
 Using Nix:
@@ -15,6 +17,9 @@ Using Nix:
 ```sh
 # Try before installing ?
 nix run github:briheet/nozarashi
+
+# Wanna try tui ?
+nix run github:briheet/nozarashi tui
 
 # Install
 nix profile install github:briheet/nozarashi
@@ -25,6 +30,9 @@ Using Go:
 ```sh
 # Try before installing ?
 go run github.com/briheet/nozarashi/cmd/nozarashi@latest
+
+# Wanna try tui ?
+go run github.com/briheet/nozarashi/cmd/nozarashi@latest tui
 
 # Install
 go install github.com/briheet/nozarashi/cmd/nozarashi@latest

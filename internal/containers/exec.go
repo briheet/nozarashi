@@ -3,6 +3,7 @@ package containers
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 
@@ -13,7 +14,7 @@ import (
 // This function wraps over apple's container cli and executes a command in a service.
 func ExecContainers(ctx context.Context, opts ContainerOptions) error {
 	// First check this containers system is running.
-	if err := StatusSystemContainers(ctx); err != nil {
+	if err := StatusSystemContainers(ctx, io.Discard); err != nil {
 		return err
 	}
 

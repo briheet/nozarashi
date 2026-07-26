@@ -25,6 +25,14 @@ var ContainerSystemStatusArgs = []string{
 	"status",
 }
 
+// Args for one container stats sample
+var ContainerStatsArgs = []string{
+	"stats",
+	"--no-stream",
+	"--format",
+	"json",
+}
+
 // Args for system stop
 var ContainerSystemStopArgs = []string{
 	"system",

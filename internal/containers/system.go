@@ -2,6 +2,7 @@ package containers
 
 import (
 	"context"
+	"io"
 	"os"
 	"os/exec"
 )
@@ -24,7 +25,7 @@ func StartSystemContainers(ctx context.Context) error {
 }
 
 // This wraps over apple's container cli for getting its status
-func StatusSystemContainers(ctx context.Context) error {
+func StatusSystemContainers(ctx context.Context, output io.Writer) error {
 	// Build base command
 	systemStatusCmd := exec.CommandContext(
 		ctx,
@@ -34,7 +35,7 @@ func StatusSystemContainers(ctx context.Context) error {
 
 	// Point the Command Error and Output to Standard Error and Output
 	systemStatusCmd.Stderr = os.Stderr
-	systemStatusCmd.Stdout = os.Stdout
+	systemStatusCmd.Stdout = output
 
 	// Run and return if any issues
 	return systemStatusCmd.Run()

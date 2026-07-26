@@ -11,7 +11,7 @@ func StatusCmd() *cobra.Command {
 		Args:  cobra.NoArgs,
 		Short: "Checking in the status if the containers.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := containers.StatusSystemContainers(cmd.Context())
+			err := containers.StatusSystemContainers(cmd.Context(), cmd.OutOrStdout())
 			return err
 		},
 	}

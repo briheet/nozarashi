@@ -2,7 +2,11 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"log"
+	"os"
+	"runtime"
+	"runtime/pprof"
 
 	"github.com/briheet/nozarashi/internal/cmd/system"
 	"github.com/spf13/cobra"
@@ -11,6 +15,9 @@ import (
 // This is the main Execute function of the application.
 // Everything flows from here.
 func Execute(ctx context.Context) int {
+	var profile bool
+	var cpuProfile *os.File
+
 	// This is the base command for nozarashi
 	// All entry points, subcommands and such go through this
 	rootCmd := &cobra.Command{
@@ -21,7 +28,46 @@ func Execute(ctx context.Context) int {
 			printAscii()
 			return cmd.Help()
 		},
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			if !profile {
+				return nil
+			}
+
+			file, err := os.Create("cpu.pprof")
+			if err != nil {
+				return err
+			}
+			if err := pprof.StartCPUProfile(file); err != nil {
+				return errors.Join(err, file.Close())
+			}
+
+			cpuProfile = file
+			return nil
+		},
+		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
+			if !profile {
+				return nil
+			}
+
+			pprof.StopCPUProfile()
+			cpuCloseErr := cpuProfile.Close()
+
+			memoryProfile, err := os.Create("mem.pprof")
+			if err != nil {
+				return errors.Join(cpuCloseErr, err)
+			}
+
+			runtime.GC()
+			return errors.Join(
+				cpuCloseErr,
+				pprof.WriteHeapProfile(memoryProfile),
+				memoryProfile.Close(),
+			)
+		},
 	}
+
+	// Profile any command and write both files to the current directory.
+	rootCmd.PersistentFlags().BoolVarP(&profile, "profile", "p", false, "record CPU and memory profiles")
 
 	// Register all top-level commands here.
 	//
@@ -66,8 +112,11 @@ func Execute(ctx context.Context) int {
 	// This is the inspect command for displaying service container details
 	rootCmd.AddCommand(InspectCmd())
 
+	// This is the tui command for viewing running containers
+	rootCmd.AddCommand(TuiCmd())
+
 	// Execute and return if any error
-	if err := rootCmd.Execute(); err != nil {
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
 		log.Printf("Error: %v", err)
 		return -1
 	}
