@@ -29,13 +29,13 @@ Using Go:
 
 ```sh
 # Try before installing ?
-go run github.com/briheet/nozarashi/cmd/nozarashi@latest
+go run github.com/briheet/nozarashi/cmd/nozarashi@main
 
 # Wanna try tui ?
-go run github.com/briheet/nozarashi/cmd/nozarashi@latest tui
+go run github.com/briheet/nozarashi/cmd/nozarashi@main tui
 
 # Install
-go install github.com/briheet/nozarashi/cmd/nozarashi@latest
+go install github.com/briheet/nozarashi/cmd/nozarashi@main
 ```
 
 ## Requirements
